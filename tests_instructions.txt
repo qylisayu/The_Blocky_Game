@@ -1,0 +1,69 @@
+tests_ module usage:
+
+The module is meant to be used to help debug your code. To make the workflow for debugging simpler, this is meant to be
+imported and run within the console. This way, you have the features of the PyCharm console, including seeing variable
+values and running code in runtime. This is done through the use of creating a thread to run the game in parallel to the
+console.
+
+To get started, enter the following pieces of code into console:
+
+from tests_ import *
+b = generate_board(3, children=True)
+debug = DebugMode(b)
+debug.display()
+
+If the screen didn't show up directly, it should be within your taskbar. Click on it and you should see a board. From
+here, you can really do what you want to the board. You can run commands like "b.smash()" or do
+"b.children[0].colour = (255, 255, 255)". Additionally, from the variables section of the console, you can easily see
+the values of variables. While this is enough for most things, I've also added a couple of features to make debugging
+even easier.
+
+Keybinds:
+W, S:
+- changes the depth, just like in the actual game
+1, 2:
+- changes your currently selected colour
+p, b:
+- prints the score of your selected colour using the (p)erimeter scoring method and (b)lob scoring method to console.
+SPACE: block.smash
+- smashes the block you're hovering over using the block.smash() method
+E, Q: block.swap
+- swaps the hovered block horizontally/vertically
+A, D: block. rotate
+- rotates CW/CCW
+K: smash_all
+- smashes everything
+J: paint_all
+- paints everything to the selected colour
+
+
+Routines:
+You can add a "routine" to the DebugMode instance you created. A routine is just something that's called every frame.
+I've currently set up two routines: display_flatten and display_perimeter. To enable a routine, simply run
+"debug.add_routine(display_flatten)". To remove a routine, you would similarly do
+"debug.remove_routine(display_flatten)". Note that these routines are NOT optimized to be run every frame
+(especially display_flatten), so you will likely experience performance issues if you enable these. I personally enable
+them to look at the board and mess around here and there before disabling them again. Routines are meant to be
+interfaceable, meaning you can define your own routine and run it. All defined routines must follow the same function
+signature of (board, renderer) however. Here's a quick example:
+
+def my_routine(board, renderer):
+  if board.colour is not None:
+    renderer._screen.fill(board.colour)
+  else:
+    renderer.print("Your board has children", (0, 0))
+
+This would just fill the screen if your board doesn't have any children with the board's colour. Otherwise, it'll
+draw the text "Your board has children" to (0, 0). To enable this, you would simply do "debug.add_routine(my_routine)".
+
+Demos:
+Demos are exactly like what they sound: they demonstrate something. For example, the demos I've written demonstrate
+how my perimeter scoring and blob scoring algorithm work: demo_blob and demo_perimeter. To enable these, simply run
+"debug.demonstration = demo_blob" and then click on the board once. The demonstration should start and you should wait
+until it completes before doing anything. Currently, these demonstrations are hard coded to score against the
+PACIFIC_POINT colour.
+Honestly, the demos are not very well designed to fit how the DebugMode class works, and were more of a last minute
+add-on, so although the functionality is there, the extensibility is not. In contrast to routines, demos are not meant
+to be easily interfaceable. That said, it's not impossible to write your own demo. To do that, you need to write a
+generator function that yields a tuple containing the coordinates for the top left of the rectangle, the size and a
+colour to outline the rectangle.
